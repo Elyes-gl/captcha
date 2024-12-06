@@ -8,7 +8,7 @@ function MainGamePage() {
     const ctx = canvas.getContext("2d");
     canvas.width = 600;
     canvas.height = 400;
-
+  
     const player = { x: 50, y: 300, width: 30, height: 30, speed: 3 }; 
     const shapes = [];
     const keys = {};
@@ -16,21 +16,21 @@ function MainGamePage() {
     let timer = 10;
     let gameOver = false;
     let messageDisplayed = false;
-
-    const playerImg = new Image();
-    playerImg.src = process.env.PUBLIC_URL + '/icons/tortue.png';
-
-    const medusImg = new Image();
-    medusImg.src = process.env.PUBLIC_URL + '/icons/meduse.png';
-
-    const sacImg = new Image();
-    sacImg.src = process.env.PUBLIC_URL + '/icons/sac.png';
-
-    const bouteilleImg = new Image();
-    bouteilleImg.src = process.env.PUBLIC_URL + '/icons/bouteille.png';
-
+  
+    const images = {
+      player: new Image(),
+      medus: new Image(),
+      sac: new Image(),
+      bouteille: new Image(),
+    };
+  
+    images.player.src = process.env.PUBLIC_URL + '/icons/tortue.png';
+    images.medus.src = process.env.PUBLIC_URL + '/icons/meduse.png';
+    images.sac.src = process.env.PUBLIC_URL + '/icons/sac.png';
+    images.bouteille.src = process.env.PUBLIC_URL + '/icons/bouteille.png';
+  
     const protectedZone = { x: 0, y: 0, width: 150, height: 70 };
-
+  
     function isInProtectedZone(x, y, size) {
       return (
         x - size / 2 < protectedZone.x + protectedZone.width &&
@@ -39,7 +39,7 @@ function MainGamePage() {
         y + size / 2 > protectedZone.y
       );
     }
-
+  
     function isOverlapping(newShape) {
       for (let shape of shapes) {
         const distanceX = newShape.x - shape.x;
@@ -51,7 +51,7 @@ function MainGamePage() {
       }
       return false;
     }
-
+  
     function generateShapes() {
       for (let i = 0; i < 3; i++) {
         let shape;
@@ -65,7 +65,7 @@ function MainGamePage() {
         } while (isOverlapping(shape) || isInProtectedZone(shape.x, shape.y, shape.size));
         shapes.push(shape);
       }
-
+  
       for (let i = 0; i < 3; i++) {
         let shape;
         do {
@@ -78,7 +78,7 @@ function MainGamePage() {
         } while (isOverlapping(shape) || isInProtectedZone(shape.x, shape.y, shape.size));
         shapes.push(shape);
       }
-
+  
       for (let i = 0; i < 3; i++) {
         let shape;
         do {
@@ -92,45 +92,45 @@ function MainGamePage() {
         shapes.push(shape);
       }
     }
-
+  
     generateShapes();
-
+  
     function handleKeyDown(e) {
       if (!gameOver) {
         keys[e.key] = true;
       }
     }
-
+  
     function handleKeyUp(e) {
       if (!gameOver) {
         keys[e.key] = false;
       }
     }
-
+  
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("keyup", handleKeyUp);
-
+  
     function movePlayer() {
       if (keys["ArrowUp"] && player.y > 0) player.y -= player.speed;
       if (keys["ArrowDown"] && player.y + player.height < canvas.height) player.y += player.speed;
       if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
       if (keys["ArrowRight"] && player.x + player.width < canvas.width) player.x += player.speed;
     }
-
+  
     function drawPlayer() {
-      ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+      ctx.drawImage(images.player, player.x, player.y, player.width, player.height);
     }
-
+  
     function drawShapes() {
       for (let shape of shapes) {
         let img;
-        if (shape.type === "medus") img = medusImg;
-        if (shape.type === "bouteille") img = bouteilleImg;
-        if (shape.type === "sac") img = sacImg;
+        if (shape.type === "medus") img = images.medus;
+        if (shape.type === "bouteille") img = images.bouteille;
+        if (shape.type === "sac") img = images.sac;
         ctx.drawImage(img, shape.x - shape.size / 2, shape.y - shape.size / 2, shape.size, shape.size);
       }
     }
-
+  
     function checkCollisions() {
       for (let i = shapes.length - 1; i >= 0; i--) {
         const shape = shapes[i];
@@ -152,7 +152,7 @@ function MainGamePage() {
         }
       }
     }
-
+  
     function updateTimer() {
       if (timer > 0 && !gameOver) {
         timer--;
@@ -161,34 +161,34 @@ function MainGamePage() {
         messageDisplayed = true;
       }
     }
-
+  
     const timerInterval = setInterval(updateTimer, 1000);
-
+  
     function drawHUD() {
-      ctx.fillStyle = "white";
+      ctx.fillStyle = "blue";
       ctx.font = "20px Inter, sans-serif";
       ctx.fillText(`Temps : ${timer}s`, 10, 20);
       ctx.fillText(`Formes : ${collectedShapes}/3`, 10, 50);
     }
-
+  
     function drawGameOverMessage() {
-      ctx.fillStyle = "#4A628A";
+      ctx.fillStyle = "blue";
       ctx.font = "30px Inter, sans-serif";
       ctx.fillText("You are a robot 🤖", canvas.width / 3, canvas.height / 2);
     }
-
+  
     function drawVictoryMessage() {
       const message = "Congratulations, you are a human! 😊";
-      ctx.fillStyle = "#4dd599";
+      ctx.fillStyle = "blue";
       ctx.font = "30px Inter, sans-serif";
       const textWidth = ctx.measureText(message).width;
       ctx.fillText(message, (canvas.width - textWidth) / 2, canvas.height / 2);
     }
-
+  
     let animationFrameId;
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+  
       if (gameOver) {
         if (collectedShapes === 3) {
           drawVictoryMessage();
@@ -197,32 +197,26 @@ function MainGamePage() {
         }
         return;
       }
-
+  
       movePlayer();
       drawPlayer();
       drawShapes();
       checkCollisions();
       drawHUD();
-
+  
       if (collectedShapes === 3) {
         drawVictoryMessage();
         gameOver = true;
         return;
       }
-
+  
       animationFrameId = requestAnimationFrame(gameLoop);
     }
-
-    playerImg.onload = () => {
-      medusImg.onload = () => {
-        sacImg.onload = () => {
-          bouteilleImg.onload = () => {
-            gameLoop();
-          };
-        };
-      };
-    };
-
+  
+    // Start game loop once images are loaded
+    Promise.all(Object.values(images).map(img => new Promise(resolve => img.onload = resolve)))
+      .then(() => gameLoop());
+  
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("keyup", handleKeyUp);
@@ -230,6 +224,7 @@ function MainGamePage() {
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
+  
 
   return (
     <div>
